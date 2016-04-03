@@ -64,8 +64,6 @@ def retrieve_articles():
             "text": articleText.replace("\"", "'")
         }
 
-        print 'insert into articles (url, title, description, image, text) values (\'%s\', \'%s\', \'%s\', \'%s\', \'%s\')' % (article["url"], article["title"], article["description"], article["image"], article["text"])
-
         db = connect_db()
         db.execute("insert into articles (url, title, description, image, text) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["description"], article["image"], article["text"]))
         db.commit()
