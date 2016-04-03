@@ -121,7 +121,30 @@ def translate():
 def connect_db():
     return sqlite3.connect(database)
 
+def init_db():
+    database = file("data.db", "w+")
+    db = connect_db()
+
+    db.execute("""create table if not exists articles (
+      id integer primary key autoincrement,
+      url text not null,
+      title text not null,
+      description text,
+      image text,
+      text text
+    );""")
+
+    db.execute("""create table if not exists translations (
+      id integer primary key autoincrement,
+      term text not null,
+      translation text not null
+    );""")
+
+    db.commit()
+
 if __name__ == "__main__":
+    init_db()
+
     if len(sys.argv) > 1:
         retrieve_articles()
 
