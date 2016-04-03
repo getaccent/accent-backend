@@ -34,9 +34,16 @@ def retrieve_articles(language):
         soup = BeautifulSoup(article_html, "html.parser")
 
         imageFind = soup.findAll(attrs={"property": "og:image"})
-        image = imageFind[0]["content"].encode("utf-8")
+        image = ""
+
+        if len(imageFind) > 0:
+            image = imageFind[0]["content"].encode("utf-8")
 
         titleFind = soup.findAll(attrs={"property": "og:title"})
+
+        if len(titleFind) == 0:
+            continue
+
         title = titleFind[0]["content"].encode("utf-8")
 
         descriptionFind = soup.findAll(attrs={"property": "og:description"})
@@ -100,7 +107,8 @@ def teardown_request(exception):
 def articles():
     language = request.args.get("lang")
     fetched_articles = []
-    cur = g.db.execute('select * from articles order by id desc where language=\"%s\"' % language)
+    print language
+    cur = g.db.execute('select * from articles where language=\"%s\"' % language)
     entries = [dict(url=row[1], title=row[2], description=row[3], image=row[4], text=row[5]) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
