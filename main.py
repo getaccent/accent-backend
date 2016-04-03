@@ -8,6 +8,7 @@ from requests.auth import HTTPBasicAuth
 app = Flask(__name__)
 
 article_list = []
+translations = {}
 
 def retrieve_articles(retrieve_text):
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
@@ -75,7 +76,7 @@ def translate_term(term):
         },
     )
 
-    print response.content
+    return json.loads(response.content)["data"]["translations"][0]["translatedText"]
 
 @app.route("/articles")
 def articles():
@@ -86,8 +87,16 @@ def articles():
 def translate():
     term = request.args.get("term")
 
+    if term in translations:
+        obj = {"translation": translations[term]}
+        return flask.jsonify(**obj)
+    else:
+        translation = translate_term(term)
+        obj = {"translation": translation}
+        return flask.jsonify(**obj)
+
 if __name__ == "__main__":
-    retrieve_articles(False)
+    # retrieve_articles(False)
     # translate_term("la lait")
 
     app.run(debug=True)
