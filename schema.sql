@@ -7,3 +7,9 @@ create table articles (
   image text,
   text text
 );
+
+create table translations (
+  id integer primary key autoincrement,
+  term text not null,
+  translation text not null
+);

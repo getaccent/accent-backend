@@ -12,8 +12,6 @@ app.config.from_object(__name__)
 
 database = "data.db"
 
-translations = {}
-
 def retrieve_articles():
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
     token = "uV5LSCwIXoqjVyZ2Y5C4S9nHpsGzuOS6u/0eKHtHcn4"
@@ -83,7 +81,11 @@ def translate_term(term):
         },
     )
 
-    return json.loads(response.content)["data"]["translations"][0]["translatedText"]
+    translation = json.loads(response.content)["data"]["translations"][0]["translatedText"]
+    g.db.execute("insert into translations (term, translation) values (\"%s\", \"%s\")" % (term, translation))
+    g.db.commit()
+
+    return translation
 
 @app.before_request
 def before_request():
@@ -107,8 +109,11 @@ def articles():
 def translate():
     term = request.args.get("term")
 
-    if term in translations:
-        obj = {"translation": translations[term]}
+    cur = g.db.execute("select * from translations where term=\"%s\"" % term)
+    entry = [dict(term=row[1], translation=row[2]) for row in cur.fetchall()]
+
+    if len(entry) > 0:
+        obj = {"translation": entry[0]["translation"]}
         return flask.jsonify(**obj)
     else:
         translation = translate_term(term)
