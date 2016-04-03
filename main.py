@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import flask
 from flask import Flask, g, request
 import json
+import os
 import requests
 from requests.auth import HTTPBasicAuth
 import sqlite3
@@ -9,8 +10,6 @@ import sys
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-
-database = "data.db"
 
 def retrieve_articles():
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
@@ -119,10 +118,12 @@ def translate():
         return flask.jsonify(**obj)
 
 def connect_db():
-    return sqlite3.connect(database)
+    return sqlite3.connect("data.db")
 
 def init_db():
-    database = file("data.db", "w+")
+    if not os.path.isfile("data.db"):
+        file("data.db", "w+")
+
     db = connect_db()
 
     db.execute("""create table if not exists articles (
