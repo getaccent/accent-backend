@@ -1,16 +1,20 @@
 from bs4 import BeautifulSoup
 import flask
-from flask import Flask, request
+from flask import Flask, g, request
 import json
 import requests
 from requests.auth import HTTPBasicAuth
+import sqlite3
+import sys
 
 app = Flask(__name__)
+app.config.from_object(__name__)
 
-article_list = []
+database = "data.db"
+
 translations = {}
 
-def retrieve_articles(retrieve_text):
+def retrieve_articles():
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
     token = "uV5LSCwIXoqjVyZ2Y5C4S9nHpsGzuOS6u/0eKHtHcn4"
     response = requests.get(url,
@@ -44,26 +48,29 @@ def retrieve_articles(retrieve_text):
         if len(descriptionFind) > 0:
             description = descriptionFind[0]["content"].encode("utf-8")
 
+        diffbotResponse = requests.get(
+            url = "http://api.diffbot.com/v3/article",
+            params = {
+                "token": "0d5c56d2a7a3a5a4ad6c644b326993c2",
+                "url": "http://www.lemonde.fr/proche-orient/article/2016/04/02/un-charnier-de-l-etat-islamique-decouvert-a-palmyre-en-syrie_4894601_3218.html",
+            },
+        )
+
+        articleText = json.loads(diffbotResponse.content)["objects"][0]["text"]
+
         article = {
             "url": url,
-            "image": image,
-            "title": title,
-            "description": description
+            "image": unicode(image, 'utf-8'),
+            "title": unicode(title, 'utf-8').replace("\"", "'"),
+            "description": unicode(description, 'utf-8').replace("\"", "'"),
+            "text": articleText.replace("\"", "'")
         }
 
-        if retrieve_text:
-            diffbotResponse = requests.get(
-                url = "http://api.diffbot.com/v3/article",
-                params = {
-                    "token": "0d5c56d2a7a3a5a4ad6c644b326993c2",
-                    "url": "http://www.lemonde.fr/proche-orient/article/2016/04/02/un-charnier-de-l-etat-islamique-decouvert-a-palmyre-en-syrie_4894601_3218.html",
-                },
-            )
+        print 'insert into articles (url, title, description, image, text) values (\'%s\', \'%s\', \'%s\', \'%s\', \'%s\')' % (article["url"], article["title"], article["description"], article["image"], article["text"])
 
-            articleText = json.loads(diffbotResponse.content)["objects"][0]["text"]
-            article["text"] = articleText
-
-        article_list.append(article)
+        db = connect_db()
+        db.execute("insert into articles (url, title, description, image, text) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["description"], article["image"], article["text"]))
+        db.commit()
 
 def translate_term(term):
     response = requests.get(
@@ -78,9 +85,22 @@ def translate_term(term):
 
     return json.loads(response.content)["data"]["translations"][0]["translatedText"]
 
+@app.before_request
+def before_request():
+    g.db = connect_db()
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+
 @app.route("/articles")
 def articles():
-    articles = {"articles": articleList}
+    fetched_articles = []
+    cur = g.db.execute('select * from articles order by id desc')
+    entries = [dict(url=row[1], title=row[2], description=row[3], image=row[4], text=row[5]) for row in cur.fetchall()]
+    articles = {"articles": entries}
     return flask.jsonify(**articles)
 
 @app.route("/translate")
@@ -95,8 +115,11 @@ def translate():
         obj = {"translation": translation}
         return flask.jsonify(**obj)
 
+def connect_db():
+    return sqlite3.connect(database)
+
 if __name__ == "__main__":
-    # retrieve_articles(False)
-    # translate_term("la lait")
+    if len(sys.argv) > 1:
+        retrieve_articles()
 
     app.run(debug=True, host="0.0.0.0", port=80)
