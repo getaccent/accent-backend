@@ -60,19 +60,22 @@ def retrieve_articles(language):
             },
         )
 
-        articleText = json.loads(diffbotResponse.content)["objects"][0]["text"]
+        responseJSON = json.loads(diffbotResponse.content)
 
-        article = {
-            "url": url,
-            "image": unicode(image, 'utf-8'),
-            "title": unicode(title, 'utf-8').replace("\"", "'"),
-            "description": unicode(description, 'utf-8').replace("\"", "'"),
-            "text": articleText.replace("\"", "'")
-        }
+        if "objects" in responseJSON.keys():
+            articleText = responseJSON["objects"][0]["text"]
 
-        db = connect_db()
-        db.execute("insert into articles (url, title, description, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["description"], article["image"], article["text"], language))
-        db.commit()
+            article = {
+                "url": url,
+                "image": unicode(image, 'utf-8'),
+                "title": unicode(title, 'utf-8').replace("\"", "'"),
+                "description": unicode(description, 'utf-8').replace("\"", "'"),
+                "text": articleText.replace("\"", "'")
+            }
+
+            db = connect_db()
+            db.execute("insert into articles (url, title, description, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["description"], article["image"], article["text"], language))
+            db.commit()
 
 def translate_term(term, language):
     response = requests.get(
