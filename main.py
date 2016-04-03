@@ -99,4 +99,4 @@ if __name__ == "__main__":
     # retrieve_articles(False)
     # translate_term("la lait")
 
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=80)
