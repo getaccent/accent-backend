@@ -50,7 +50,7 @@ def retrieve_articles():
             url = "http://api.diffbot.com/v3/article",
             params = {
                 "token": "0d5c56d2a7a3a5a4ad6c644b326993c2",
-                "url": "http://www.lemonde.fr/proche-orient/article/2016/04/02/un-charnier-de-l-etat-islamique-decouvert-a-palmyre-en-syrie_4894601_3218.html",
+                "url": url,
             },
         )
 
