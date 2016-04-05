@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import flask
 from flask import Flask, g, request
 import json
+import newspaper
+from newspaper import Article
 import os
 import requests
 from requests.auth import HTTPBasicAuth
@@ -28,54 +30,29 @@ def retrieve_articles(language):
     )
 
     articles = json.loads(response.content)["d"]["results"][0]["News"]
-    for article in articles:
-        url = article["Url"]
-        article_html = requests.get(url).content
-        soup = BeautifulSoup(article_html, "html.parser")
 
-        imageFind = soup.findAll(attrs={"property": "og:image"})
-        image = ""
+    for art in articles:
+        url = art["Url"]
 
-        if len(imageFind) > 0:
-            image = imageFind[0]["content"].encode("utf-8")
+        a = Article(url, lang=language.split("-")[0])
+        a.download()
+        a.parse()
 
-        titleFind = soup.findAll(attrs={"property": "og:title"})
+        text = a.text.replace("\"", "'")
 
-        if len(titleFind) == 0:
+        if len(text) < 10:
             continue
 
-        title = titleFind[0]["content"].encode("utf-8")
+        article = {
+            "url": url,
+            "image": a.top_image,
+            "title": a.title.replace("\"", "'"),
+            "text": text
+        }
 
-        descriptionFind = soup.findAll(attrs={"property": "og:description"})
-        description = ""
-
-        if len(descriptionFind) > 0:
-            description = descriptionFind[0]["content"].encode("utf-8")
-
-        diffbotResponse = requests.get(
-            url = "http://api.diffbot.com/v3/article",
-            params = {
-                "token": "0d5c56d2a7a3a5a4ad6c644b326993c2",
-                "url": url,
-            },
-        )
-
-        responseJSON = json.loads(diffbotResponse.content)
-
-        if "objects" in responseJSON.keys():
-            articleText = responseJSON["objects"][0]["text"]
-
-            article = {
-                "url": url,
-                "image": unicode(image, 'utf-8'),
-                "title": unicode(title, 'utf-8').replace("\"", "'"),
-                "description": unicode(description, 'utf-8').replace("\"", "'"),
-                "text": articleText.replace("\"", "'")
-            }
-
-            db = connect_db()
-            db.execute("insert into articles (url, title, description, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["description"], article["image"], article["text"], language))
-            db.commit()
+        db = connect_db()
+        db.execute("insert into articles (url, title, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["image"], article["text"], language))
+        db.commit()
 
 def translate_term(term, language):
     response = requests.get(
@@ -87,8 +64,6 @@ def translate_term(term, language):
             "target": "en",
         },
     )
-
-    print response.content
 
     translation = json.loads(response.content)["data"]["translations"][0]["translatedText"]
     g.db.execute("insert into translations (term, translation, language) values (\"%s\", \"%s\", \"%s\")" % (term, translation, language))
@@ -110,9 +85,8 @@ def teardown_request(exception):
 def articles():
     language = request.args.get("lang")
     fetched_articles = []
-    print language
     cur = g.db.execute('select * from articles where language=\"%s\"' % language)
-    entries = [dict(url=row[1], title=row[2], description=row[3], image=row[4], text=row[5]) for row in cur.fetchall()]
+    entries = [(dict(url=row[1], title=row[2], text=row[3], image=row[4]) if len(row[4]) > 0 else dict(url=row[1], title=row[2], text=row[3])) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
 
@@ -145,9 +119,8 @@ def init_db():
       id integer primary key autoincrement,
       url text not null,
       title text not null,
-      description text,
+      text text not null,
       image text,
-      text text,
       language text not null
     );""")
 
@@ -164,7 +137,8 @@ if __name__ == "__main__":
     init_db()
 
     if len(sys.argv) > 1:
-        languages = ["es-ES", "fr-FR", "zh-CN", "sv-SE"]
+        # languages = ["es-ES", "fr-FR", "zh-CN", "sv-SE"]
+        languages = ["zh-CN"]
         for language in languages:
             retrieve_articles(language)
 
