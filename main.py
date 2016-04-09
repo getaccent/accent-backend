@@ -11,7 +11,7 @@ def translate_term(term, language):
     response = requests.get(
         url = "https://www.googleapis.com/language/translate/v2",
         params = {
-            "key": "AIzaSyAqM11ClyXJss3ETYmhNFUWFWN5PkbSuo4",
+            "key": "AIzaSyARW9JcFJBS92x2IR-6dSYAI_l0R55xCrA",
             "q": term,
             "source": language,
             "target": "en",

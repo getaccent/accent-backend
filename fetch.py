@@ -22,6 +22,7 @@ def retrieve_articles(language):
         }
     )
 
+    lang = {"es-ES": "es", "fr-FR": "fr", "zh-CN": "zh-CN", "sv-SE": "sv"}[language]
     articles = json.loads(response.content)["d"]["results"][0]["News"]
 
     for art in articles:
@@ -44,7 +45,7 @@ def retrieve_articles(language):
         }
 
         db = connect_db()
-        db.execute("insert into articles (url, title, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["image"], article["text"], language))
+        db.execute("insert into articles (url, title, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["image"], article["text"], lang))
         db.commit()
 
 def init_db():
