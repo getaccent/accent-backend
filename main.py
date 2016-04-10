@@ -1,6 +1,7 @@
 import flask
 from flask import Flask, g, request
 import json
+from newspaper import Article
 import requests
 import sqlite3
 
@@ -42,6 +43,25 @@ def articles():
     entries = [(dict(url=row[1], title=row[2], text=row[3], image=row[4]) if len(row[4]) > 0 else dict(url=row[1], title=row[2], text=row[3])) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
+
+@app.route("/parse")
+def parse():
+    url = request.args.get("url")
+
+    a = Article(url)
+    a.download()
+    a.parse()
+
+    text = a.text.replace("\"", "'")
+
+    article = {
+        "url": url,
+        "image": a.top_image,
+        "title": a.title.replace("\"", "'"),
+        "text": text
+    }
+
+    return flask.jsonify(**article)
 
 @app.route("/translate")
 def translate():
