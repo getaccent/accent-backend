@@ -17,7 +17,7 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     if len(entries) >= 1:
         return entries[0]
 
-    article = Article(url, language=lang)
+    article = Article(url, language=lang) if lang != None else Article(url)
     article.download()
     article.parse()
 
@@ -70,7 +70,7 @@ def init_db():
       authors text,
       date integer not null,
       featured integer not null,
-      language text not null
+      language text
     );""")
 
     db.execute("""create table if not exists translations (
