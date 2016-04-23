@@ -6,7 +6,6 @@ import os
 import requests
 import sqlite3
 
-
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -46,7 +45,7 @@ def teardown_request(exception):
 def articles():
     language = request.args.get("lang")
     fetched_articles = []
-    cur = g.db.execute('select * from articles where language=\"%s\"' % (language)
+    cur = g.db.execute('select * from articles where language=\"%s\"' % language)
     entries = [(dict(url=row[1], title=row[2], text=row[3], image=row[4]) if len(row[4]) > 0 else dict(url=row[1], title=row[2], text=row[3])) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
@@ -69,17 +68,11 @@ def parse():
     }
 
     return flask.jsonify(**article)
-    
+
 @app.route("/save", methods=['POST'])
 def save():
     num = request.args.get("num")
     url = request.args.get("url")
-
-    a = Article(url)
-    a.download()
-    a.parse()
-
-    text = a.text.replace("\"", "'")
 
     g.sdb.execute("""create table if not exists n%s (
         id integer primary key autoincrement,
@@ -95,20 +88,10 @@ def save():
 @app.route("/saved")
 def saved():
     num = request.args.get("num")
-    url = request.args.get("url")
-    a = Article(url)
-    a.download()
-    a.parse()
 
     cur = g.sdb.execute("select * from n%s" % num)
-    entries = [dict(url=row[1], status=row[2],title=row[3], text=row[3],image=row[5],num=row[6]) for row in cur.fetchall()]
-    result = {
-        "entries": entries;
-        "url":url
-        "image":a.top_image,
-        "title":a.title.replace("\"","''),
-        "text":text
-        }
+    entries = [dict(url=row[1], status=row[2]) for row in cur.fetchall()]
+    result = {"entries": entries}
 
     return flask.jsonify(**result)
 
