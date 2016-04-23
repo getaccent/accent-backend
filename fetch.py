@@ -1,11 +1,26 @@
 import json
-from main import parse_article
 import newspaper
 from newspaper import Article
 import os
 import requests
 from requests.auth import HTTPBasicAuth
 import sqlite3
+
+def parse_article(url, lang, featured=0):
+    article = Article(url, language=lang)
+    article.download()
+    article.parse()
+
+    title = article.title
+    image = article.top_image
+    text = article.text
+    authors = ",".join(article.authors)
+    date = str(time.mktime(article.publish_date.timetuple()))
+
+    g.db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, \"%s\")" % (url, title, image, text, authors, date, featured, lang))
+    g.db.commit()
+
+    return {"url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
 
 def retrieve_articles(language):
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
