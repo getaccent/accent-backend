@@ -71,7 +71,7 @@ def parse():
 
     return flask.jsonify(**article)
 
-@app.route("/save", methods=['POST'])
+@app.route("/save", methods=['PUT'])
 def save():
     num = request.args.get("num")
     url = request.args.get("url")
@@ -86,7 +86,7 @@ def save():
 
     return flask.jsonify(**{"success": True})
 
-@app.route("/saved")
+@app.route("/save", methods=['GET'])
 def saved():
     num = request.args.get("num")
 
@@ -101,7 +101,7 @@ def saved():
     result = {"articles": articles}
     return flask.jsonify(**result)
 
-@app.route("/unsave", methods=['DELETE'])
+@app.route("/save", methods=['DELETE'])
 def unsave():
     num = request.args.get("num")
     url = request.args.get("url")
