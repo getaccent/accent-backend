@@ -16,7 +16,7 @@ def parse_article(url, lang, featured=0):
     image = article.top_image
     text = article.text
     authors = ",".join(article.authors)
-    date = str(time.mktime(article.publish_date.timetuple()))
+    date = 0 if article.publish_date == None else int(time.mktime(article.publish_date.timetuple()))
 
     db = connect_db()
 
@@ -61,7 +61,7 @@ def init_db():
       image text,
       text text not null,
       authors text,
-      date text,
+      date integer not null,
       featured integer not null,
       language text not null
     );""")
