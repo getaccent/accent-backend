@@ -1,4 +1,5 @@
 import json
+from main import parse_article
 import newspaper
 from newspaper import Article
 import os
@@ -27,26 +28,7 @@ def retrieve_articles(language):
 
     for art in articles:
         url = art["Url"]
-
-        a = Article(url, lang=language.split("-")[0])
-        a.download()
-        a.parse()
-
-        text = a.text.replace("\"", "'")
-
-        if len(text) < 10:
-            continue
-
-        article = {
-            "url": url,
-            "image": a.top_image,
-            "title": a.title.replace("\"", "'"),
-            "text": text
-        }
-
-        db = connect_db()
-        db.execute("insert into articles (url, title, image, text, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")" % (article["url"], article["title"], article["image"], article["text"], lang))
-        db.commit()
+        parse_article(url, language, 1)
 
 def init_db():
     if not os.path.isfile("data.db"):
@@ -58,8 +40,11 @@ def init_db():
       id integer primary key autoincrement,
       url text not null,
       title text not null,
-      text text not null,
       image text,
+      text text not null,
+      authors text,
+      date text,
+      featured integer not null,
       language text not null
     );""")
 

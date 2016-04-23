@@ -5,9 +5,26 @@ from newspaper import Article
 import os
 import requests
 import sqlite3
+import time
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+def parse_article(url, lang, featured=0):
+    article = Article(url, language=lang)
+    article.download()
+    article.parse()
+
+    title = article.title
+    image = article.top_image
+    text = article.text
+    authors = ",".join(article.authors)
+    date = str(time.mktime(article.publish_date.timetuple()))
+
+    g.db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, \"%s\")" % (url, title, image, text, authors, date, featured, lang))
+    g.db.commit()
+
+    return {"url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
 
 def translate_term(term, language):
     response = requests.get(
@@ -45,8 +62,8 @@ def teardown_request(exception):
 def articles():
     language = request.args.get("lang")
     fetched_articles = []
-    cur = g.db.execute('select * from articles where language=\"%s\"' % language)
-    entries = [(dict(url=row[1], title=row[2], text=row[3], image=row[4]) if len(row[4]) > 0 else dict(url=row[1], title=row[2], text=row[3])) for row in cur.fetchall()]
+    cur = g.db.execute('select * from articles where language=\"%s\" and featured=1' % language)
+    entries = [dict(url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
 
@@ -76,11 +93,10 @@ def save():
 
     g.sdb.execute("""create table if not exists n%s (
         id integer primary key autoincrement,
-        url text not null,
-        status integer not null
+        url text not null
     )""" % num)
 
-    g.sdb.execute("insert into n%s (url, status) values ('%s', 0)" % (num, url))
+    g.sdb.execute("insert into n%s (url) values ('%s')" % (num, url))
     g.sdb.commit()
 
     return flask.jsonify(**{"success": True})
