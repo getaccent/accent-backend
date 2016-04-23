@@ -1,5 +1,6 @@
 import flask
 from flask import Flask, g, request
+from fetch import parse_article
 import json
 from newspaper import Article
 import os
@@ -9,22 +10,6 @@ import time
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-
-def parse_article(url, lang, featured=0):
-    article = Article(url, language=lang)
-    article.download()
-    article.parse()
-
-    title = article.title
-    image = article.top_image
-    text = article.text
-    authors = ",".join(article.authors)
-    date = 0 if article.publish_date == None else int(time.mktime(article.publish_date.timetuple()))
-
-    g.db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
-    g.db.commit()
-
-    return {"url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
 
 def translate_term(term, language):
     response = requests.get(
@@ -106,9 +91,14 @@ def saved():
     num = request.args.get("num")
 
     cur = g.sdb.execute("select * from n%s" % num)
-    entries = [dict(url=row[1], status=row[2]) for row in cur.fetchall()]
-    result = {"entries": entries}
+    urls = [row[1] for row in cur.fetchall()]
 
+    articles = []
+
+    for url in urls:
+        articles.append(parse_article(entry))
+
+    result = {"articles": articles}
     return flask.jsonify(**result)
 
 @app.route("/translate")

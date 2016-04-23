@@ -7,7 +7,13 @@ from requests.auth import HTTPBasicAuth
 import sqlite3
 import time
 
-def parse_article(url, lang, featured=0):
+def parse_article(url, lang, featured=0, db=connect_db()):
+    cur = db.execute("select * from articles where url=?", (url,))
+    entries = [dict(url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
+
+    if len(entries) >= 1:
+        return entries[0]
+
     article = Article(url, language=lang)
     article.download()
     article.parse()
@@ -17,8 +23,6 @@ def parse_article(url, lang, featured=0):
     text = article.text
     authors = ",".join(article.authors)
     date = 0 if article.publish_date == None else int(time.mktime(article.publish_date.timetuple()))
-
-    db = connect_db()
 
     db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
     db.commit()
