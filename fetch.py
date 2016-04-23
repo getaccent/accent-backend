@@ -62,7 +62,7 @@ def connect_db():
 
 init_db()
 
-languages = ["es-ES", "fr-FR", "zh-CN", "sv-SE"]
+languages = ["es", "fr", "en"]
 
 for language in languages:
     retrieve_articles(language)
