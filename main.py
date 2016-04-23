@@ -101,6 +101,16 @@ def saved():
     result = {"articles": articles}
     return flask.jsonify(**result)
 
+@app.route("/unsave", methods=['DELETE'])
+def unsave():
+    num = request.args.get("num")
+    url = request.args.get("url")
+
+    g.sdb.execute("delete from n%s where url=?" % num, (url,))
+    g.sdb.commit()
+
+    return flask.jsonify(**{"success": True})
+
 @app.route("/translate")
 def translate():
     term = request.args.get("term")
