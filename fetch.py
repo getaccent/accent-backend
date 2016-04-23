@@ -5,6 +5,7 @@ import os
 import requests
 from requests.auth import HTTPBasicAuth
 import sqlite3
+import time
 
 def parse_article(url, lang, featured=0):
     article = Article(url, language=lang)
