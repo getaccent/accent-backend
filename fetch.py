@@ -28,7 +28,7 @@ def retrieve_articles(language):
 
     for art in articles:
         url = art["Url"]
-        parse_article(url, language, 1)
+        parse_article(url, lang, 1)
 
 def init_db():
     if not os.path.isfile("data.db"):
@@ -62,7 +62,7 @@ def connect_db():
 
 init_db()
 
-languages = ["es", "fr", "en"]
+languages = ["es-ES", "fr-FR", "sv-SE"]
 
 for language in languages:
     retrieve_articles(language)
