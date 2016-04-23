@@ -20,7 +20,7 @@ def parse_article(url, lang, featured=0):
 
     db = connect_db()
 
-    db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", %d, \"%s\")" % (url, title, image, text, authors, date, featured, lang))
+    db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
     db.commit()
 
     return {"url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
