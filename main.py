@@ -48,7 +48,7 @@ def articles():
     language = request.args.get("lang")
     fetched_articles = []
     cur = g.db.execute('select * from articles where language=\"%s\" and featured=1' % language)
-    entries = [dict(url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
+    entries = [dict(id=row[0], url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
     articles = {"articles": entries}
     return flask.jsonify(**articles)
 

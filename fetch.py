@@ -13,7 +13,7 @@ def connect_db():
 
 def parse_article(url, lang, featured=0, db=connect_db()):
     cur = db.execute("select * from articles where url=?", (url,))
-    entries = [dict(url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
+    entries = [dict(id=row[0], url=row[1], title=row[2], image=row[3], text=row[4], authors=row[5], date=row[6], featured=row[7], language=row[8]) for row in cur.fetchall()]
 
     if len(entries) >= 1:
         return entries[0]
@@ -31,7 +31,10 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
     db.commit()
 
-    return {"url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
+    idquery = db.execute("select (id) from articles where url=?", (url,))
+    id = [row[0] for row in idquery.fetchall()][0]
+
+    return {"id": id, "url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
 
 def retrieve_articles(language):
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
