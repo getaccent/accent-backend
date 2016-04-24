@@ -1,3 +1,4 @@
+import datetime
 import json
 import newspaper
 from newspaper import Article
@@ -25,7 +26,7 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     image = article.top_image
     text = article.text
     authors = ",".join(article.authors)
-    date = 0 if article.publish_date == None else int(time.mktime(article.publish_date.timetuple()))
+    date = 0 if type(article.publish_date) is datetime.datetime else int(time.mktime(article.publish_date.timetuple()))
 
     db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
     db.commit()
