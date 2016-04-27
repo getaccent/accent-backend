@@ -11,19 +11,19 @@ import time
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-def translate_term(term, language):
+def translate_term(term, language, target):
     response = requests.get(
         url = "https://www.googleapis.com/language/translate/v2",
         params = {
             "key": "AIzaSyARW9JcFJBS92x2IR-6dSYAI_l0R55xCrA",
             "q": term,
             "source": language,
-            "target": "en",
+            "target": target,
         },
     )
 
     translation = json.loads(response.content)["data"]["translations"][0]["translatedText"]
-    g.db.execute("insert into translations (term, translation, language) values (\"%s\", \"%s\", \"%s\")" % (term, translation, language))
+    g.db.execute("insert into translations (term, translation, language, target) values (\"%s\", \"%s\", \"%s\", \"%s\")" % (term, translation, language, target))
     g.db.commit()
 
     return translation
@@ -115,15 +115,16 @@ def unsave():
 def translate():
     term = request.args.get("term")
     language = request.args.get("lang")
+    target = request.args.get("target")
 
-    cur = g.db.execute("select * from translations where term=\"%s\" and language=\"%s\"" % (term, language))
+    cur = g.db.execute("select * from translations where term=\"%s\" and language=\"%s\" and target=\"%s\"" % (term, language, target))
     entry = [dict(term=row[1], translation=row[2]) for row in cur.fetchall()]
 
     if len(entry) > 0:
         obj = {"translation": entry[0]["translation"]}
         return flask.jsonify(**obj)
     else:
-        translation = translate_term(term, language)
+        translation = translate_term(term, language, target)
         obj = {"translation": translation}
         return flask.jsonify(**obj)
 

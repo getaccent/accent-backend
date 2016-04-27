@@ -81,7 +81,8 @@ def init_db():
       id integer primary key autoincrement,
       term text not null,
       translation text not null,
-      language text not null
+      language text not null,
+      target text not null
     );""")
 
     db.commit()
