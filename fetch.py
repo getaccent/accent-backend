@@ -28,7 +28,7 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     authors = ",".join(article.authors)
     date = int(time.mktime(article.publish_date.timetuple())) if type(article.publish_date) is datetime.datetime else 0
 
-    db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured, lang))
+    db.execute("insert into articles (url, title, image, text, authors, date, featured, language) values (?, ?, ?, ?, ?, ?, ?, ?)", (url, title, image, text, authors, date, featured and len(text) >= 50, lang))
     db.commit()
 
     idquery = db.execute("select (id) from articles where url=?", (url,))
