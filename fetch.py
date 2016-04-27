@@ -52,7 +52,7 @@ def retrieve_articles(language):
         }
     )
 
-    lang = {"es-ES": "es", "fr-FR": "fr", "zh-CN": "zh-CN", "sv-SE": "sv"}[language]
+    lang = {"en-US": "en", "es-ES": "es", "fr-FR": "fr", "de-DE": "de", "zh-CN": "zh-CN", "zh-TW": "zh-TW", "ja-JP": "ja", "it-IT": "it", "ko-KR": "ko", "sv-SE": "sv", "ru-RU": "ru"}[language]
     articles = json.loads(response.content)["d"]["results"][0]["News"]
 
     for art in articles:
@@ -89,7 +89,7 @@ def init_db():
 
 init_db()
 
-languages = ["es-ES", "fr-FR", "sv-SE"]
+languages = ["en-US", "es-ES", "fr-FR", "de-DE", "zh-CN", "zh-TW", "ja-JP", "it-IT", "ko-KR", "sv-SE", "ru-RU"]
 
 for language in languages:
     retrieve_articles(language)
