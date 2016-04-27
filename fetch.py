@@ -18,7 +18,7 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     if len(entries) >= 1:
         return entries[0]
 
-    article = Article(url, language=lang) if lang != None else Article(url)
+    article = Article(url)
     article.download()
     article.parse()
 
