@@ -87,9 +87,10 @@ def init_db():
 
     db.commit()
 
-init_db()
+if __name__ == "__main__":
+    init_db()
 
-languages = ["en-US", "es-ES", "fr-FR", "de-DE", "zh-CN", "zh-TW", "ja-JP", "it-IT", "ko-KR", "sv-SE", "ru-RU"]
+    languages = ["en-US", "es-ES", "fr-FR", "de-DE", "zh-CN", "zh-TW", "ja-JP", "it-IT", "ko-KR", "sv-SE", "ru-RU"]
 
-for language in languages:
-    retrieve_articles(language)
+    for language in languages:
+        retrieve_articles(language)

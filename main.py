@@ -1,4 +1,3 @@
-import flask
 from flask import Flask, g, request
 from fetch import parse_article
 import json
