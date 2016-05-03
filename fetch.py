@@ -8,6 +8,8 @@ from requests.auth import HTTPBasicAuth
 import sqlite3
 import time
 
+keys = json.load(file("keys.json", "r"))
+
 def connect_db():
     return sqlite3.connect("data.db")
 
@@ -38,7 +40,7 @@ def parse_article(url, lang, featured=0, db=connect_db()):
 
 def retrieve_articles(language):
     url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
-    token = "uV5LSCwIXoqjVyZ2Y5C4S9nHpsGzuOS6u/0eKHtHcn4"
+    token = keys["bing_search"]
     response = requests.get(url,
         auth = HTTPBasicAuth(token, token),
         params = {
@@ -48,7 +50,7 @@ def retrieve_articles(language):
             "$format": "json",
         },
         headers = {
-            "Authorization": "Basic dVY1TFNDd0lYb3FqVnlaMlk1QzRTOW5IcHNHenVPUzZ1LzBlS0h0SGNuNDoqKioqKiBIaWRkZW4gY3JlZGVudGlhbHMgKioqKio=",
+            "Authorization": "Basic %s" % keys["bing_auth_header"],
         }
     )
 

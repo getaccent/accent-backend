@@ -8,6 +8,8 @@ import requests
 import sqlite3
 import time
 
+keys = json.load(file("keys.json", "r"))
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -15,7 +17,7 @@ def translate_term(term, language, target):
     response = requests.get(
         url = "https://www.googleapis.com/language/translate/v2",
         params = {
-            "key": "AIzaSyARW9JcFJBS92x2IR-6dSYAI_l0R55xCrA",
+            "key": keys["google_translate"],
             "q": term,
             "source": language,
             "target": target,
