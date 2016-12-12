@@ -8,7 +8,7 @@ from requests.auth import HTTPBasicAuth
 import sqlite3
 import time
 
-keys = json.load(file("keys.json", "r"))
+keys = json.load(open("keys.json", "r"))
 
 def connect_db():
     return sqlite3.connect("data.db")
@@ -54,7 +54,7 @@ def retrieve_articles(language):
     )
 
     lang = {"en-US": "en", "es-ES": "es", "fr-FR": "fr", "de-DE": "de", "zh-CN": "zh-CN", "zh-TW": "zh-TW", "ja-JP": "ja", "it-IT": "it", "ko-KR": "ko", "sv-SE": "sv", "ru-RU": "ru"}[language]
-    articles = json.loads(response.content)["value"]
+    articles = response.json()["value"]
 
     for art in articles:
         url = art["url"]
@@ -62,7 +62,7 @@ def retrieve_articles(language):
 
 def init_db():
     if not os.path.isfile("data.db"):
-        file("data.db", "w+")
+        open("data.db", "w+")
 
     db = connect_db()
 

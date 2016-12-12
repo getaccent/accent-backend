@@ -8,7 +8,7 @@ import requests
 import sqlite3
 import time
 
-keys = json.load(file("keys.json", "r"))
+keys = json.load(open("keys.json", "r"))
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -24,7 +24,7 @@ def translate_term(term, language, target):
         },
     )
 
-    translation = json.loads(response.content)["data"]["translations"][0]["translatedText"]
+    translation = response.json()["data"]["translations"][0]["translatedText"]
     g.db.execute("insert into translations (term, translation, language, target) values (\"%s\", \"%s\", \"%s\", \"%s\")" % (term, translation, language, target))
     g.db.commit()
 
@@ -99,7 +99,7 @@ def saved():
 
     for url in urls:
         article = parse_article(url, None, d=g.db)
-        
+
         if article is not None:
             articles.append(article)
 
@@ -141,9 +141,9 @@ def connect_saved_db():
 
 if __name__ == "__main__":
     if not os.path.isfile("data.db"):
-        file("data.db", "w+")
+        open("data.db", "w+")
 
     if not os.path.isfile("saved.db"):
-        file("saved.db", "w+")
+        open("saved.db", "w+")
 
     app.run(debug=True, host="0.0.0.0", port=80)
