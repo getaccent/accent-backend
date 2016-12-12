@@ -98,7 +98,10 @@ def saved():
     articles = []
 
     for url in urls:
-        articles.append(parse_article(url, None, db=g.db))
+        article = parse_article(url, None, d=g.db)
+        
+        if article is not None:
+            articles.append(article)
 
     result = {"articles": articles}
     return flask.jsonify(**result)

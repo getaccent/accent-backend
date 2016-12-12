@@ -22,7 +22,11 @@ def parse_article(url, lang, featured=0, db=connect_db()):
 
     article = Article(url)
     article.download()
-    article.parse()
+
+    try:
+        article.parse()
+    except:
+        return None
 
     title = article.title
     image = article.top_image
@@ -39,26 +43,21 @@ def parse_article(url, lang, featured=0, db=connect_db()):
     return {"id": id, "url": url, "title": title, "image": image, "text": text, "authors": authors, "date": date, "language": lang}
 
 def retrieve_articles(language):
-    url = "https://api.datamarket.azure.com/Bing/Search/v1/Composite"
-    token = keys["bing_search"]
+    url = "https://api.cognitive.microsoft.com/bing/v5.0/news"
     response = requests.get(url,
-        auth = HTTPBasicAuth(token, token),
         params = {
-            "Sources": "'news'",
-            "Query": "''",
-            "Market": "'%s'" % language,
-            "$format": "json",
+            "mkt": language
         },
         headers = {
-            "Authorization": "Basic %s" % keys["bing_auth_header"],
+            "Ocp-Apim-Subscription-Key": keys["bing_search"]
         }
     )
 
     lang = {"en-US": "en", "es-ES": "es", "fr-FR": "fr", "de-DE": "de", "zh-CN": "zh-CN", "zh-TW": "zh-TW", "ja-JP": "ja", "it-IT": "it", "ko-KR": "ko", "sv-SE": "sv", "ru-RU": "ru"}[language]
-    articles = json.loads(response.content)["d"]["results"][0]["News"]
+    articles = json.loads(response.content)["value"]
 
     for art in articles:
-        url = art["Url"]
+        url = art["url"]
         parse_article(url, lang, 1)
 
 def init_db():
